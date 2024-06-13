@@ -11,7 +11,7 @@ namespace ET.Server
         {
             foreach (StartSceneConfig startSceneConfig in StartSceneConfigCategory.Instance.GetAll().Values)
             {
-                if (startSceneConfig.Type == SceneType.Location)
+                if (startSceneConfig.SceneType == nameof(SceneType.Location))
                 {
                     this.locations.Add(startSceneConfig);
                 }
