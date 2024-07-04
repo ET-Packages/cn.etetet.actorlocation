@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ET.Server
 {
     public static partial class LocationProxyComponentSystem
     {
-        private static ActorId GetLocationSceneId(long key)
+        private static ActorId GetLocationSceneId(this LocationProxyComponent self, long key)
         {
-            return LocationConfigSingleton.Instance.GetLocation(key).ActorId;
+            List<StartSceneConfig> locationConfigs = StartSceneConfigCategory.Instance.GetBySceneType(self.Zone(), SceneType.Location);
+            return locationConfigs[(int)(key % locationConfigs.Count)].ActorId;
         }
 
         public static async ETTask Add(this LocationProxyComponent self, int type, long key, ActorId actorId)
@@ -17,7 +19,7 @@ namespace ET.Server
             objectAddRequest.Type = type;
             objectAddRequest.Key = key;
             objectAddRequest.ActorId = actorId;
-            await fiber.Root.GetComponent<MessageSender>().Call(GetLocationSceneId(key), objectAddRequest);
+            await fiber.Root.GetComponent<MessageSender>().Call(self.GetLocationSceneId(key), objectAddRequest);
         }
 
         public static async ETTask Lock(this LocationProxyComponent self, int type, long key, ActorId actorId, int time = 60000)
@@ -30,7 +32,7 @@ namespace ET.Server
             objectLockRequest.Key = key;
             objectLockRequest.ActorId = actorId;
             objectLockRequest.Time = time;
-            await fiber.Root.GetComponent<MessageSender>().Call(GetLocationSceneId(key), objectLockRequest);
+            await fiber.Root.GetComponent<MessageSender>().Call(self.GetLocationSceneId(key), objectLockRequest);
         }
 
         public static async ETTask UnLock(this LocationProxyComponent self, int type, long key, ActorId oldActorId, ActorId newActorId)
@@ -42,7 +44,7 @@ namespace ET.Server
             objectUnLockRequest.Key = key;
             objectUnLockRequest.OldActorId = oldActorId;
             objectUnLockRequest.NewActorId = newActorId;
-            await fiber.Root.GetComponent<MessageSender>().Call(GetLocationSceneId(key), objectUnLockRequest);
+            await fiber.Root.GetComponent<MessageSender>().Call(self.GetLocationSceneId(key), objectUnLockRequest);
         }
 
         public static async ETTask Remove(this LocationProxyComponent self, int type, long key)
@@ -53,7 +55,7 @@ namespace ET.Server
             ObjectRemoveRequest objectRemoveRequest = ObjectRemoveRequest.Create();
             objectRemoveRequest.Type = type;
             objectRemoveRequest.Key = key;
-            await fiber.Root.GetComponent<MessageSender>().Call(GetLocationSceneId(key), objectRemoveRequest);
+            await fiber.Root.GetComponent<MessageSender>().Call(self.GetLocationSceneId(key), objectRemoveRequest);
         }
 
         public static async ETTask<ActorId> Get(this LocationProxyComponent self, int type, long key)
@@ -68,7 +70,7 @@ namespace ET.Server
             objectGetRequest.Type = type;
             objectGetRequest.Key = key;
             ObjectGetResponse response =
-                    (ObjectGetResponse) await self.Root().GetComponent<MessageSender>().Call(GetLocationSceneId(key), objectGetRequest);
+                    (ObjectGetResponse) await self.Root().GetComponent<MessageSender>().Call(self.GetLocationSceneId(key), objectGetRequest);
             return response.ActorId;
         }
 
