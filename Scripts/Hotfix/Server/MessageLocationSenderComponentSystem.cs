@@ -41,23 +41,22 @@ namespace ET.Server
 
         private static void Check(this MessageLocationSenderOneType self)
         {
-            using (ListComponent<long> list = ListComponent<long>.Create())
+            using ListComponent<long> list = ListComponent<long>.Create();
+            
+            long timeNow = TimeInfo.Instance.ServerNow();
+            foreach ((long key, Entity value) in self.Children)
             {
-                long timeNow = TimeInfo.Instance.ServerNow();
-                foreach ((long key, Entity value) in self.Children)
-                {
-                    MessageLocationSender messageLocationMessageSender = (MessageLocationSender) value;
+                MessageLocationSender messageLocationMessageSender = (MessageLocationSender) value;
 
-                    if (timeNow > messageLocationMessageSender.LastSendOrRecvTime + MessageLocationSenderOneType.TIMEOUT_TIME)
-                    {
-                        list.Add(key);
-                    }
-                }
-
-                foreach (long id in list)
+                if (timeNow > messageLocationMessageSender.LastSendOrRecvTime + MessageLocationSenderOneType.TIMEOUT_TIME)
                 {
-                    self.Remove(id);
+                    list.Add(key);
                 }
+            }
+
+            foreach (long id in list)
+            {
+                self.Remove(id);
             }
         }
 
@@ -91,9 +90,9 @@ namespace ET.Server
         
         // 发给不会改变位置的actorlocation用这个，这种actor消息不会阻塞发送队列，性能更高
         // 发送过去找不到actor不会重试,用此方法，你得保证actor提前注册好了location
-        public static async ETTask Send(this MessageLocationSenderOneType self, long entityId, IMessage message)
+        public static void Send(this MessageLocationSenderOneType self, long entityId, IMessage message)
         {
-            await self.SendInner(entityId, message);
+            self.SendInner(entityId, message).NoContext();
         }
         
         private static async ETTask SendInner(this MessageLocationSenderOneType self, long entityId, IMessage message)
@@ -102,17 +101,9 @@ namespace ET.Server
 
             Scene root = self.Root();
             
-            if (messageLocationSender.ActorId != default)
-            {
-                messageLocationSender.LastSendOrRecvTime = TimeInfo.Instance.ServerNow();
-                root.GetComponent<MessageSender>().Send(messageLocationSender.ActorId, message);
-                return;
-            }
-            
             long instanceId = messageLocationSender.InstanceId;
             
-            long coroutineLockType = (self.Id << 32) | CoroutineLockType.MessageLocationSender;
-            using (await root.Root().GetComponent<CoroutineLockComponent>().Wait(coroutineLockType, entityId))
+            using (await root.GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.MessageLocationSender, entityId))
             {
                 if (messageLocationSender.InstanceId != instanceId)
                 {
@@ -141,16 +132,9 @@ namespace ET.Server
 
             Scene root = self.Root();
             
-            if (messageLocationSender.ActorId != default)
-            {
-                messageLocationSender.LastSendOrRecvTime = TimeInfo.Instance.ServerNow();
-                return await root.GetComponent<MessageSender>().Call(messageLocationSender.ActorId, request);
-            }
-            
             long instanceId = messageLocationSender.InstanceId;
             
-            long coroutineLockType = (self.Id << 32) | CoroutineLockType.MessageLocationSender;
-            using (await root.GetComponent<CoroutineLockComponent>().Wait(coroutineLockType, entityId))
+            using (await root.GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.MessageLocationSender, entityId))
             {
                 if (messageLocationSender.InstanceId != instanceId)
                 {
@@ -183,8 +167,7 @@ namespace ET.Server
             Scene root = self.Root();
             Type iRequestType = iRequest.GetType();
             long actorLocationSenderInstanceId = messageLocationSender.InstanceId;
-            long coroutineLockType = (self.Id << 32) | CoroutineLockType.MessageLocationSender;
-            using (await root.GetComponent<CoroutineLockComponent>().Wait(coroutineLockType, entityId))
+            using (await root.GetComponent<CoroutineLockComponent>().Wait(CoroutineLockType.MessageLocationSender, entityId))
             {
                 if (messageLocationSender.InstanceId != actorLocationSenderInstanceId)
                 {
