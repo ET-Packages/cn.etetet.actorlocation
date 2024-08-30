@@ -1,7 +1,7 @@
 ﻿{
   "name": "cn.etetet.actorlocation",
   "displayName": "ET.ActorLocation",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "unity": "2022.3",
   "description": "实现了actor location机制",
   "author": {
@@ -15,8 +15,8 @@
   "relatedPackages": {},
   "dependencies": {
     "cn.etetet.core": "0.1.1",
-    "cn.etetet.netinner": "0.0.7",
-    "cn.etetet.startconfig": "0.0.6"
+    "cn.etetet.netinner": "0.0.8",
+    "cn.etetet.startconfig": "0.0.7"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/@ET-Packages"
