@@ -1,7 +1,7 @@
 ﻿{
   "name": "cn.etetet.actorlocation",
   "displayName": "ET.ActorLocation",
-  "version": "0.0.14",
+  "version": "1.0.0",
   "unity": "2022.3",
   "description": "实现了actor location机制",
   "author": {
@@ -14,8 +14,8 @@
   },
   "relatedPackages": {},
   "dependencies": {
-    "cn.etetet.core": "0.1.1",
-    "cn.etetet.netinner": "0.0.9",
+    "cn.etetet.core": "1.0.0",
+    "cn.etetet.netinner": "1.0.0",
     "cn.etetet.startconfig": "0.0.9"
   },
   "publishConfig": {
