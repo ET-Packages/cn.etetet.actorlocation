@@ -107,7 +107,7 @@ namespace ET.Server
             {
                 if (messageLocationSender.InstanceId != instanceId)
                 {
-                    throw new RpcException(ErrorCore.ERR_MessageTimeout, $"{message}");
+                    throw new RpcException(ErrorCode.ERR_MessageTimeout, $"{message}");
                 }
                 
                 if (messageLocationSender.ActorId == default)
@@ -115,7 +115,7 @@ namespace ET.Server
                     messageLocationSender.ActorId = await root.GetComponent<LocationProxyComponent>().Get((int)self.Id, messageLocationSender.Id);
                     if (messageLocationSender.InstanceId != instanceId)
                     {
-                        throw new RpcException(ErrorCore.ERR_ActorLocationSenderTimeout2, $"{message}");
+                        throw new RpcException(ErrorCode.ERR_ActorLocationSenderTimeout2, $"{message}");
                     }
                 }
                 
@@ -138,7 +138,7 @@ namespace ET.Server
             {
                 if (messageLocationSender.InstanceId != instanceId)
                 {
-                    throw new RpcException(ErrorCore.ERR_MessageTimeout, $"{request}");
+                    throw new RpcException(ErrorCode.ERR_MessageTimeout, $"{request}");
                 }
 
                 if (messageLocationSender.ActorId == default)
@@ -146,7 +146,7 @@ namespace ET.Server
                     messageLocationSender.ActorId = await root.GetComponent<LocationProxyComponent>().Get((int)self.Id, messageLocationSender.Id);
                     if (messageLocationSender.InstanceId != instanceId)
                     {
-                        throw new RpcException(ErrorCore.ERR_ActorLocationSenderTimeout2, $"{request}");
+                        throw new RpcException(ErrorCode.ERR_ActorLocationSenderTimeout2, $"{request}");
                     }
                 }
             }
@@ -171,7 +171,7 @@ namespace ET.Server
             {
                 if (messageLocationSender.InstanceId != actorLocationSenderInstanceId)
                 {
-                    throw new RpcException(ErrorCore.ERR_NotFoundActor, $"{iRequest}");
+                    throw new RpcException(ErrorCode.ERR_NotFoundActor, $"{iRequest}");
                 }
 
                 try
@@ -207,24 +207,24 @@ namespace ET.Server
                     messageLocationSender.ActorId = await root.GetComponent<LocationProxyComponent>().Get((int)self.Id, messageLocationSender.Id);
                     if (messageLocationSender.InstanceId != instanceId)
                     {
-                        throw new RpcException(ErrorCore.ERR_ActorLocationSenderTimeout2, $"{iRequest}");
+                        throw new RpcException(ErrorCode.ERR_ActorLocationSenderTimeout2, $"{iRequest}");
                     }
                 }
 
                 if (messageLocationSender.ActorId == default)
                 {
-                    return MessageHelper.CreateResponse(requestType, 0, ErrorCore.ERR_NotFoundActor);
+                    return MessageHelper.CreateResponse(requestType, 0, ErrorCode.ERR_NotFoundActor);
                 }
                 IResponse response = await root.GetComponent<MessageSender>().Call(messageLocationSender.ActorId, iRequest, needException: false);
                 
                 if (messageLocationSender.InstanceId != instanceId)
                 {
-                    throw new RpcException(ErrorCore.ERR_ActorLocationSenderTimeout3, $"{requestType.FullName}");
+                    throw new RpcException(ErrorCode.ERR_ActorLocationSenderTimeout3, $"{requestType.FullName}");
                 }
                 
                 switch (response.Error)
                 {
-                    case ErrorCore.ERR_NotFoundActor:
+                    case ErrorCode.ERR_NotFoundActor:
                     {
                         // 如果没找到Actor,重试
                         ++failTimes;
@@ -241,19 +241,19 @@ namespace ET.Server
                         await root.GetComponent<TimerComponent>().WaitAsync(500);
                         if (messageLocationSender.InstanceId != instanceId)
                         {
-                            throw new RpcException(ErrorCore.ERR_ActorLocationSenderTimeout4, $"{requestType.FullName}");
+                            throw new RpcException(ErrorCode.ERR_ActorLocationSenderTimeout4, $"{requestType.FullName}");
                         }
 
                         messageLocationSender.ActorId = default;
                         continue;
                     }
-                    case ErrorCore.ERR_MessageTimeout:
+                    case ErrorCode.ERR_MessageTimeout:
                     {
                         throw new RpcException(response.Error, $"{requestType.FullName}");
                     }
                 }
 
-                if (ErrorCore.IsRpcNeedThrowException(response.Error))
+                if (ErrorCode.IsRpcNeedThrowException(response.Error))
                 {
                     throw new RpcException(response.Error, $"Message: {response.Message} Request: {requestType.FullName}");
                 }

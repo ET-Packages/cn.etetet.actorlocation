@@ -75,7 +75,7 @@ namespace ET.Server
                 }
                 catch (Exception exception)
                 {
-                    response.Error = ErrorCore.ERR_RpcFail;
+                    response.Error = ErrorCode.ERR_RpcFail;
                     response.Message = exception.ToString();
                 }
                 response.RpcId = rpcId;
